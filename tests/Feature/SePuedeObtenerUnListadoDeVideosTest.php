@@ -60,12 +60,13 @@ class SePuedeObtenerUnListadoDeVideosTest extends TestCase
       $videoYesterday = Video::factory()->create([
         'created_at' => Carbon::yesterday()
       ]);
+      
 
       $response = $this->getJson('/api/videos')
         ->assertJsonPath('0.id', $videoToday->id)
         ->assertJsonPath('1.id', $videoYesterday->id)
         ->assertJsonPath('2.id', $videoPast->id);
-
+      
       // OLD MODE
       // [$videoOne, $videoTwo, $videoThree] = $response->json();
       //
@@ -77,7 +78,7 @@ class SePuedeObtenerUnListadoDeVideosTest extends TestCase
       // $this->assertEquals($videoThree['id'], $videoPast->id);
     }
 
-    public function testSepuedeLimitarElNumeroDeVideosAObtener(){
+    public function testSePuedeLimitarElNumeroDeVideosAObtener(){
         Video::factory(5)->create();
         $this->getJson('/api/videos?limit=3')
           ->assertJsonCount(3);
