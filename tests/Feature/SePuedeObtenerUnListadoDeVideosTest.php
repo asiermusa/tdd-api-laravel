@@ -76,4 +76,79 @@ class SePuedeObtenerUnListadoDeVideosTest extends TestCase
       // //A month ago
       // $this->assertEquals($videoThree['id'], $videoPast->id);
     }
+
+    public function testSepuedeLimitarElNumeroDeVideosAObtener(){
+        Video::factory(5)->create();
+        $this->getJson('/api/videos?limit=3')
+          ->assertJsonCount(3);
+    }
+
+    public function testPorDefectoSoloEnvia_30Videos() {
+      Video::factory(20)->create();
+      $this->getJson('/api/videos')
+        ->assertJsonCount(10);
+    }
+
+
+    // data provider
+    public function invalidLimitProvider()
+    {
+      return [
+        'El límite inferior es 1' => [3, '-1'],
+        'El límite es de 50 videos' => [51, '51'],
+        'No se puede pasar un limite como string' => [4, 'unstring']
+      ];
+    }
+
+    /**
+     * @dataProvider invalidLimitProvider
+     */
+    public function testDevuelveUnprocessableSiHayErrorEnElLimite($numberOfVideos, $limit)
+    {
+        Video::factory($numberOfVideos)->create();
+        $this->getJson(
+          sprintf('/api/videos?limit=%s', $limit)
+        )
+        ->assertStatus(422);
+    }
+
+    public function testPodemosPaginarLosVideos()
+    {
+        // crear 9 videos
+        Video::factory(9)->create();
+        // Pedir que me de pagina 2 limitando a 5 $videos
+        $this->getJson('/api/videos?limit=5&page=2')
+          ->assertJsonCount(4);
+    }
+
+    public function testPaginacionPorDefectoPaginaPrimera()
+    {
+        // crear 9 videos
+        Video::factory(9)->create();
+        // Pedir que me de pagina 2 limitando a 5 $videos
+        $this->getJson('/api/videos?limit=5')
+          ->assertJsonCount(5);
+    }
+
+
+    // data provider
+    public function invalidPagesProvider()
+    {
+      return [
+        'No se puede pasar un string como pagina' => ['unstring'],
+        'La página no puede ser menor que 1' => [0]
+      ];
+    }
+
+    /**
+     * @dataProvider invalidPagesProvider
+     */
+    public function testDevuelveCeroVideosCuandoLaPaginaNoExiste($invalidPage)
+    {
+        // crear 9 videos
+        Video::factory(9)->create();
+        // Pedir que me de pagina 2 limitando a 5 $videos
+        $this->getJson(sprintf('/api/videos?page=%s', $invalidPage))
+          ->assertStatus(422);
+    }
 }

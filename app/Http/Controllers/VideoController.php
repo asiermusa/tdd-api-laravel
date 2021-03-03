@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Video;
 use App\Dtos\VideoPreview;
+use App\Http\Requests\VideoListRequest;
 
 class VideoController extends Controller
 {
@@ -13,8 +14,10 @@ class VideoController extends Controller
     //   return Video::find($id);
     // }
 
-    public function index(){
-      $videos = Video::orderBy('created_at', 'DESC')->get()
+    public function index(VideoListRequest $request){
+
+      $videos = Video::lastVideos($request->getLimit(), $request->getPage())
+        ->get()
         ->mapInto(VideoPreview::class);
 
       return $videos;
